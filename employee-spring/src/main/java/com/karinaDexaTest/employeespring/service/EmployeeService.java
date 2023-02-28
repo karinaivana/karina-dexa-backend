@@ -6,5 +6,7 @@ public interface EmployeeService {
     LoginResponseDTO login(LoginRequestDTO dto);
     UpdateEmployeePersonalDataResponseDTO updateEmployeePersonalData(UpdateEmployeePersonalDataRequestDTO dto);
     boolean validateEmployeeById(long employeeId);
-    CreateNewEmployeeResponseDTO createNewEmployee(CreateNewEmployeeRequestDTO dto);
+    CreateOrUpdateEmployeeByAdminResponseDTO createOrUpdateEmployeeByAdmin(CreateOrUpdateEmployeeByAdminRequestDTO dto);
+
+    GetAllEmployeeDataResponseDTO getAllEmployeeData();
 }

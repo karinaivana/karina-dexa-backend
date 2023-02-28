@@ -34,13 +34,13 @@ public class EmployeeController {
         return ResponseEntity.ok(updateEmployeePersonalDataResponseDTO);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<CreateNewEmployeeResponseDTO> createNewEmployee(
-            @RequestBody CreateNewEmployeeRequestDTO createNewEmployeeRequestDTO
+    @PostMapping("/create-or-update")
+    public ResponseEntity<CreateOrUpdateEmployeeByAdminResponseDTO> createOrUpdateEmployeeByAdmin(
+            @RequestBody CreateOrUpdateEmployeeByAdminRequestDTO createOrUpdateEmployeeByAdminRequestDTO
     ) {
-        CreateNewEmployeeResponseDTO createNewEmployeeResponseDTO = employeeService.createNewEmployee(createNewEmployeeRequestDTO);
+        CreateOrUpdateEmployeeByAdminResponseDTO createOrUpdateEmployeeByAdminResponseDTO = employeeService.createOrUpdateEmployeeByAdmin(createOrUpdateEmployeeByAdminRequestDTO);
 
-        return ResponseEntity.ok(createNewEmployeeResponseDTO);
+        return ResponseEntity.ok(createOrUpdateEmployeeByAdminResponseDTO);
     }
 
     @GetMapping("validate/{employeeId}")
@@ -50,5 +50,10 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.validateEmployeeById(employeeId));
     }
 
+    @GetMapping("/all/list")
+    public ResponseEntity<GetAllEmployeeDataResponseDTO> getAllEmployeeData() {
+        GetAllEmployeeDataResponseDTO getAllEmployeeDataResponseDTO = employeeService.getAllEmployeeData();
 
+        return ResponseEntity.ok(getAllEmployeeDataResponseDTO);
+    }
 }

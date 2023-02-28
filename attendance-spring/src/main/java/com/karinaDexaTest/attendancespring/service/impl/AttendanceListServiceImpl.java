@@ -12,10 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
@@ -38,16 +36,36 @@ public class AttendanceListServiceImpl implements AttendanceListService {
     private final int MAX_TOTAL_ATTENDANCE_LIST_SHOW = 1000;
 
     @Override
+    public ValidateEmployeeAttendanceTodayResponseDTO validateEmployeeAttendanceToday(long employeeId) {
+        boolean isEmployeeAlreadyCome = false;
+
+        ZoneId zoneId = ZoneId.of("Asia/Bangkok");
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        ZonedDateTime currentDateTimeOnMidnight = currentDateTime.with(LocalTime.MIDNIGHT).atZone(zoneId);
+
+        AttendanceList attendanceList = attendanceListRepository.findByEmployeeIdToday(employeeId, currentDateTimeOnMidnight);
+
+        if(attendanceList != null && attendanceList.getCreatedAt() != null) isEmployeeAlreadyCome = true;
+
+        return ValidateEmployeeAttendanceTodayResponseDTO.builder()
+                .isSuccess(true)
+                .message("Success get employee attendance track")
+                .isEmployeeAlreadyCome(isEmployeeAlreadyCome)
+                .build();
+    }
+
+    @Override
     @Transactional
-    public AddAttendanceListResponseDTO addEmployeeAttendanceList(AddAttendanceListRequestDTO dto) {
+    public AddEmployeeAttendanceResponseDTO addEmployeeAttendance(AddEmployeeAttendanceRequestDTO dto) {
         Boolean validateEmployeeIdIsExist = webClient.get()
-                .uri("http://localhost:8080/employee/validate/" + dto.getEmployeeId())
+                .uri("http://localhost:8084/employee/validate/" + dto.getEmployeeId())
                 .retrieve()
                 .bodyToMono(boolean.class)
                 .block();
 
         if(!validateEmployeeIdIsExist) {
-            return AddAttendanceListResponseDTO.builder()
+            return AddEmployeeAttendanceResponseDTO.builder()
                     .message("Add employee attendance is failed because employee doesn't exist")
                     .isSuccess(false)
                     .build();
@@ -55,6 +73,7 @@ public class AttendanceListServiceImpl implements AttendanceListService {
 
         ZoneId zoneId = ZoneId.of("Asia/Bangkok");
         LocalDateTime currentDateTime = LocalDateTime.now();
+
         ZonedDateTime currentDateTimeOnMidnight = currentDateTime.with(LocalTime.MIDNIGHT).atZone(zoneId);
 
         AttendanceList attendanceList = attendanceListRepository.findByEmployeeIdToday(dto.getEmployeeId(), currentDateTimeOnMidnight);
@@ -69,10 +88,9 @@ public class AttendanceListServiceImpl implements AttendanceListService {
 
         attendanceListRepository.save(attendanceList);
 
-        return AddAttendanceListResponseDTO.builder()
+        return AddEmployeeAttendanceResponseDTO.builder()
                 .isSuccess(true)
                 .message("Employee succeed to add their attendance")
-                .attendanceListDTO(attendanceListConverter.toDTO(attendanceList))
                 .isWorkAttendance(dto.isWorkAttendance())
                 .build();
     }
@@ -80,7 +98,7 @@ public class AttendanceListServiceImpl implements AttendanceListService {
     @Override
     public GetEmployeeAttendanceListResponseDTO getSpecificEmployeeAttendance(GetEmployeeAttendanceListRequestDTO dto) {
         Boolean validateEmployeeIdIsExist = webClient.get()
-                .uri("http://localhost:8080/employee/validate/" + dto.getEmployeeId())
+                .uri("http://localhost:8084/employee/validate/" + dto.getEmployeeId())
                 .retrieve()
                 .bodyToMono(boolean.class)
                 .block();
@@ -92,15 +110,23 @@ public class AttendanceListServiceImpl implements AttendanceListService {
                     .build();
         }
 
-        ZoneId zoneId = ZoneId.of("Asia/Bangkok");
+        ZoneId idZoneId = ZoneId.of("Asia/Bangkok");
+        ZoneId utcZoneId = ZoneId.of("UTC");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        ZonedDateTime startDate = dto.getStartAt();
-        ZonedDateTime endDate = dto.getEndAt();
+        ZonedDateTime startDate;
+        ZonedDateTime endDate;
 
         LocalDateTime currentTime = LocalDateTime.now();
 
-        if(startDate == null) startDate = currentTime.with(TemporalAdjusters.firstDayOfMonth()).atZone(zoneId);
-        if(endDate == null) endDate = currentTime.atZone(zoneId);
+        if(dto.getStartAt() == null || dto.getEndAt() == null) {
+            startDate = currentTime.with(TemporalAdjusters.firstDayOfMonth()).atZone(idZoneId);
+            endDate = currentTime.atZone(idZoneId);
+        } else {
+            startDate = LocalDate.parse(dto.getStartAt(), dtf).atStartOfDay(idZoneId);
+
+            endDate = LocalDate.parse(dto.getEndAt(), dtf).plusDays(1).atStartOfDay(idZoneId);
+        }
 
         Page<AttendanceList> attendanceLists = attendanceListRepository.findAllByIdAndCreated(dto.getEmployeeId(), startDate, endDate, Pageable.ofSize(MAX_TOTAL_ATTENDANCE_LIST_SHOW));
 
@@ -113,9 +139,12 @@ public class AttendanceListServiceImpl implements AttendanceListService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AttendanceListDTO> getAllEmployeeAttendance() {
+    public GetAllEmployeeAttendanceResponseDTO getAllEmployeeAttendance() {
         Page<AttendanceList> attendanceLists = attendanceListRepository.getAllWithPageable(Pageable.ofSize(MAX_TOTAL_ATTENDANCE_LIST_SHOW));
 
-        return attendanceListConverter.convertToDtoList(attendanceLists);
+        return GetAllEmployeeAttendanceResponseDTO.builder()
+                .isSuccess(true)
+                .attendanceListDTOS(attendanceListConverter.convertToDtoList(attendanceLists))
+                .build();
     }
 }

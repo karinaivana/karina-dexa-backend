@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Builder @Setter @Getter
-public class CreateNewEmployeeResponseDTO {
+public class CreateOrUpdateEmployeeByAdminResponseDTO {
     private boolean isSuccess;
     private String message;
     private EmployeeDTO employeeDTO;

@@ -2,11 +2,9 @@ package com.karinaDexaTest.attendancespring.controller;
 
 import com.karinaDexaTest.attendancespring.dto.*;
 import com.karinaDexaTest.attendancespring.service.AttendanceListService;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 @RestController
@@ -21,19 +19,19 @@ public class AttendanceListController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<AddAttendanceListResponseDTO> addEmployeeAttendanceList(
-            @RequestBody AddAttendanceListRequestDTO addAttendanceListRequestDTO
+    public ResponseEntity<AddEmployeeAttendanceResponseDTO> addEmployeeAttendance(
+            @RequestBody AddEmployeeAttendanceRequestDTO addEmployeeAttendanceRequestDTO
     ) {
-        AddAttendanceListResponseDTO addAttendanceListResponseDTO = attendanceListService.addEmployeeAttendanceList(addAttendanceListRequestDTO);
+        AddEmployeeAttendanceResponseDTO addEmployeeAttendanceResponseDTO = attendanceListService.addEmployeeAttendance(addEmployeeAttendanceRequestDTO);
 
-        return ResponseEntity.ok(addAttendanceListResponseDTO);
+        return ResponseEntity.ok(addEmployeeAttendanceResponseDTO);
     }
 
     @GetMapping("/list")
     public ResponseEntity<GetEmployeeAttendanceListResponseDTO> getEmployeeAttendanceList(
             @RequestParam long employeeId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime startAt,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime endAt
+            @RequestParam(required = false) String startAt,
+            @RequestParam(required = false) String endAt
     ) {
         GetEmployeeAttendanceListRequestDTO getEmployeeAttendanceListRequestDTO = GetEmployeeAttendanceListRequestDTO.builder()
                 .employeeId(employeeId)
@@ -47,8 +45,17 @@ public class AttendanceListController {
     }
 
     @GetMapping("/all/list")
-    public ResponseEntity<List<AttendanceListDTO>> getAllEmployeeAttendance() {
-        List<AttendanceListDTO> attendanceListDTOS = attendanceListService.getAllEmployeeAttendance();
+    public ResponseEntity<GetAllEmployeeAttendanceResponseDTO> getAllEmployeeAttendance() {
+        GetAllEmployeeAttendanceResponseDTO attendanceListDTOS = attendanceListService.getAllEmployeeAttendance();
+
+        return ResponseEntity.ok(attendanceListDTOS);
+    }
+
+    @GetMapping("/validate/today")
+    public ResponseEntity<ValidateEmployeeAttendanceTodayResponseDTO> validateEmployeeAttendanceToday(
+            @RequestParam long employeeId
+    ) {
+        ValidateEmployeeAttendanceTodayResponseDTO attendanceListDTOS = attendanceListService.validateEmployeeAttendanceToday(employeeId);
 
         return ResponseEntity.ok(attendanceListDTOS);
     }
