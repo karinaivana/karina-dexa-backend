@@ -1,5 +1,6 @@
 package com.karinaDexaTest.employeespring.dto;
 
+import com.karinaDexaTest.employeespring.model.Role;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,7 @@ public class EmployeeDTO {
     private String name;
     private String email;
     private String password;
-    private String role;
+    private RoleDTO roleDTO;
     private String phoneNumber;
     private String photoLink;
 }

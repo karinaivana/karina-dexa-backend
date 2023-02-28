@@ -1,6 +1,7 @@
 package com.karinaDexaTest.employeespring.converter;
 
 import com.karinaDexaTest.employeespring.dto.EmployeeDTO;
+import com.karinaDexaTest.employeespring.dto.RoleDTO;
 import com.karinaDexaTest.employeespring.model.Employee;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -12,11 +13,14 @@ import java.util.stream.Collectors;
 @Component
 public class EmployeeConverter {
     private final ModelMapper modelMapper;
+    private final RoleConverter roleConverter;
 
     public EmployeeConverter(
-            ModelMapper modelMapper
+            ModelMapper modelMapper,
+            RoleConverter roleConverter
     ) {
         this.modelMapper = modelMapper;
+        this.roleConverter = roleConverter;
     }
 
     public EmployeeDTO toDTO(Employee employee) {
@@ -24,12 +28,15 @@ public class EmployeeConverter {
 
         EmployeeDTO employeeDTO = modelMapper.map(employee, EmployeeDTO.class);
 
+        RoleDTO roleDTO = roleConverter.toDTO(employee.getRole());
+        employeeDTO.setRoleDTO(roleDTO);
+
         return employeeDTO;
     }
 
     public List<EmployeeDTO> convertToDtoList(Page<Employee> employeePage) {
         List<Employee> entities = employeePage.getContent();
-        return entities.stream().map(entity -> modelMapper.map(entity, EmployeeDTO.class)).collect(Collectors.toList());
+        return entities.stream().map(entity -> toDTO(entity)).collect(Collectors.toList());
     }
 
     public Employee toEntity(EmployeeDTO employeeDTO) {

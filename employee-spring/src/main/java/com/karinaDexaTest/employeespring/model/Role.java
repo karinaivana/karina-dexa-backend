@@ -11,15 +11,15 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(name="employees")
+@Table(name="roles")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Employee {
+public class Role {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -32,19 +32,5 @@ public class Employee {
     @Column(name = "deleted_at")
     private ZonedDateTime deletedAt;
 
-    private String name;
-
-    private String email;
-
-    private String password;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
-    private Role role;
-
-    @Column(name = "phone_number")
-    private String phoneNumber;
-
-    @Column(name = "photo_link")
-    private String photoLink;
+    private String description;
 }

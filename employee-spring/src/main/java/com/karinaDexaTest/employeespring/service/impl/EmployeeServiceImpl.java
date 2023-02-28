@@ -3,7 +3,9 @@ package com.karinaDexaTest.employeespring.service.impl;
 import com.karinaDexaTest.employeespring.converter.EmployeeConverter;
 import com.karinaDexaTest.employeespring.dto.*;
 import com.karinaDexaTest.employeespring.model.Employee;
+import com.karinaDexaTest.employeespring.model.Role;
 import com.karinaDexaTest.employeespring.repository.EmployeeRepository;
+import com.karinaDexaTest.employeespring.repository.RoleRepository;
 import com.karinaDexaTest.employeespring.service.EmployeeService;
 import com.karinaDexaTest.employeespring.utils.EmailUtils;
 import com.karinaDexaTest.employeespring.utils.PhoneNumberUtils;
@@ -20,6 +22,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final PhoneNumberUtils phoneNumberUtils;
     private final EmailUtils emailUtils;
 
+    private final RoleRepository roleRepository;
+
     private final int MAX_TOTAL_EMPLOYEE_LIST_SHOW = 1000;
 
     @Autowired
@@ -27,12 +31,14 @@ public class EmployeeServiceImpl implements EmployeeService {
             EmployeeRepository employeeRepository,
             EmployeeConverter employeeConverter,
             PhoneNumberUtils phoneNumberUtils,
-            EmailUtils emailUtils
+            EmailUtils emailUtils,
+            RoleRepository roleRepository
     ){
         this.employeeRepository = employeeRepository;
         this.employeeConverter = employeeConverter;
         this.phoneNumberUtils = phoneNumberUtils;
         this.emailUtils = emailUtils;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -40,7 +46,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         if(dto.getEmail() == null || dto.getEmail().isEmpty() || dto.getPassword() == null || dto.getPassword().isEmpty()) {
             return LoginResponseDTO.builder()
                     .isSuccess(false)
-                    .message("Login employee is failed because email or password is null")
+                    .message("Employee login has failed because the email or password is null")
                     .build();
         }
 
@@ -49,14 +55,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         if(employee == null) {
             return LoginResponseDTO.builder()
                     .isSuccess(false)
-                    .message("Login employee is failed because data doesn't exist")
+                    .message("Employee login has failed because data doesn't exist")
                     .build();
         }
 
+        EmployeeDTO employeeDTO = employeeConverter.toDTO(employee);
+
         return LoginResponseDTO.builder()
                 .isSuccess(true)
-                .message("Login employee is succeed")
-                .employeeDTO(employeeConverter.toDTO(employee))
+                .message("Employee login was succeed")
+                .employeeDTO(employeeDTO)
                 .build();
     }
 
@@ -66,9 +74,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         boolean isPhoneNumberValid = phoneNumberUtils.isValidPhoneNumber(dto.getPhoneNumber());
         String normalizePhoneNumber = phoneNumberUtils.normalizePhoneNumber(dto.getPhoneNumber());
 
+        //validate phone number
         if(!isPhoneNumberValid || normalizePhoneNumber == null) {
             return UpdateEmployeePersonalDataResponseDTO.builder()
-                    .message("Updating employee data has failed because the phone is not valid")
+                    .message("The update of employee data has failed due to an invalid phone number.")
                     .isSuccess(false)
                     .build();
         }
@@ -76,7 +85,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findExistingEmployee(dto.getEmployeeId());
         if(employee == null) {
             return UpdateEmployeePersonalDataResponseDTO.builder()
-                    .message("Updating employee data has failed because the employee does not exist")
+                    .message("The update of employee data has failed because the employee does not exist.")
                     .isSuccess(false)
                     .build();
         }
@@ -89,7 +98,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return UpdateEmployeePersonalDataResponseDTO.builder()
                 .isSuccess(true)
-                .message("Update employee data is succeed")
+                .message("The update of employee data has succeed")
                 .employeeDTO(employeeConverter.toDTO(employee))
                 .build();
     }
@@ -105,6 +114,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional
     public CreateOrUpdateEmployeeByAdminResponseDTO createOrUpdateEmployeeByAdmin(CreateOrUpdateEmployeeByAdminRequestDTO dto) {
+        //validate phone number value
         boolean isPhoneNumberValid = phoneNumberUtils.isValidPhoneNumber(dto.getPhoneNumber());
         String normalizePhoneNumber = phoneNumberUtils.normalizePhoneNumber(dto.getPhoneNumber());
         if(!isPhoneNumberValid || normalizePhoneNumber == null) {
@@ -114,6 +124,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                     .build();
         }
 
+        //validate email value
         boolean isEmailValid = emailUtils.isValidEmail(dto.getEmail());
         if(!isEmailValid) {
             return CreateOrUpdateEmployeeByAdminResponseDTO.builder()
@@ -122,6 +133,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                     .build();
         }
 
+        //Validate email is unique
         Employee existingEmployeeByEmail = null;
 
         if(dto.getId() == null) existingEmployeeByEmail = employeeRepository.findExistingEmployeeByEmail(dto.getEmail());
@@ -129,23 +141,35 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         if(existingEmployeeByEmail != null) {
             return CreateOrUpdateEmployeeByAdminResponseDTO.builder()
-                    .message("Creating/Updating new employee has failed because email already exist")
+                    .message("Creating/Updating the new employee has failed because the email already exists.")
                     .isSuccess(false)
                     .build();
         }
 
+        //Check it create or update employee data
         Employee employeeSaved = null;
-
         if(dto.getId() != null) {
             employeeSaved = employeeRepository.findExistingEmployee(dto.getId());
         } else {
             employeeSaved = new Employee();
         }
 
+        if(dto.getRole() != null) {
+            Role newRole = roleRepository.getRoleByIdString(dto.getRole());
+
+            if(newRole == null) {
+                return CreateOrUpdateEmployeeByAdminResponseDTO.builder()
+                        .message("Creating/Updating the new employee has failed because rulesnot valid")
+                        .isSuccess(false)
+                        .build();
+            }
+
+            employeeSaved.setRole(newRole);
+        }
+
         employeeSaved.setName(dto.getName());
         employeeSaved.setEmail(dto.getEmail());
         employeeSaved.setPassword(dto.getPassword());
-        employeeSaved.setRole(dto.getRole());
         employeeSaved.setPhoneNumber(normalizePhoneNumber);
         employeeSaved.setPhotoLink(dto.getPhotoLink());
 
@@ -158,6 +182,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .build();
     }
 
+    //Used for admins to display all employee data before editing.
     @Override
     public GetAllEmployeeDataResponseDTO getAllEmployeeData() {
         Page<Employee> employeeList = employeeRepository.getAllWithPageable(Pageable.ofSize(MAX_TOTAL_EMPLOYEE_LIST_SHOW));
