@@ -30,10 +30,10 @@ public interface AttendanceListRepository extends JpaRepository<AttendanceList, 
     );
 
     @Query("Select al from AttendanceList al " +
-            "where al.id = :id " +
-            "and createdAt >= :sda")
+            "where al.employeeId = :ei " +
+            "and createdAt >= :time")
     AttendanceList findByEmployeeIdToday(
-            @Param("id") Long id,
-            @Param("sda") ZonedDateTime startDayAt
+            @Param("ei") Long employeeId,
+            @Param("time") ZonedDateTime time
     );
 }

@@ -5,8 +5,8 @@ import com.karinaDexaTest.attendancespring.dto.*;
 import java.util.List;
 
 public interface AttendanceListService {
-    AddAttendanceListResponseDTO addEmployeeAttendanceList(AddAttendanceListRequestDTO dto);
+    ValidateEmployeeAttendanceTodayResponseDTO validateEmployeeAttendanceToday(long employeeId);
+    AddEmployeeAttendanceResponseDTO addEmployeeAttendance(AddEmployeeAttendanceRequestDTO dto);
     GetEmployeeAttendanceListResponseDTO getSpecificEmployeeAttendance(GetEmployeeAttendanceListRequestDTO dto);
-
     List<AttendanceListDTO> getAllEmployeeAttendance();
 }

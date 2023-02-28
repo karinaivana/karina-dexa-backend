@@ -78,8 +78,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         if(dto.getPassword() != null) employee.setPassword(dto.getPassword());
-        else if(dto.getPhoneNumber() != null) employee.setPhoneNumber(normalizePhoneNumber);
-        else if(dto.getPhotoLink() != null) employee.setPhotoLink(dto.getPhotoLink());
+        if(dto.getPhoneNumber() != null) employee.setPhoneNumber(normalizePhoneNumber);
+        if(dto.getPhotoLink() != null) employee.setPhotoLink(dto.getPhotoLink());
 
         employeeRepository.saveAndFlush(employee);
 
