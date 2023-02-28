@@ -29,7 +29,7 @@ public class AdminServiceImpl implements AdminService {
         if(dto.getUsername() == null || dto.getUsername().isEmpty() || dto.getPassword() == null || dto.getPassword().isEmpty()) {
             return LoginResponseDTO.builder()
                     .isSuccess(false)
-                    .message("Login admin is failed because username or password is null")
+                    .message("Admin login has failed because the email or password is null.")
                     .build();
         }
 
@@ -38,13 +38,13 @@ public class AdminServiceImpl implements AdminService {
         if(admin == null) {
             return LoginResponseDTO.builder()
                     .isSuccess(false)
-                    .message("Login admin is failed because data doesn't exist")
+                    .message("Admin login has failed because data doesn't exist")
                     .build();
         }
 
         return LoginResponseDTO.builder()
                 .isSuccess(true)
-                .message("Login admin is succeed")
+                .message("Admin login was succeed")
                 .adminDTO(adminConverter.toDTO(admin))
                 .build();
     }
@@ -55,7 +55,7 @@ public class AdminServiceImpl implements AdminService {
         if(dto.getUsername() == null || dto.getUsername().isEmpty() || dto.getPassword() == null || dto.getPassword().isEmpty()) {
             return CreateNewAdminResponseDTO.builder()
                     .isSuccess(false)
-                    .message("Create new admin is failed because username or password is null")
+                    .message("Creating new admin has failed because the phone number is not valid")
                     .build();
         }
 
@@ -64,7 +64,7 @@ public class AdminServiceImpl implements AdminService {
         if(existingAdmin != null) {
             return CreateNewAdminResponseDTO.builder()
                     .isSuccess(false)
-                    .message("Create new admin is failed because username already exist")
+                    .message("Creating new admin has failed because the username already exist")
                     .build();
         }
 
@@ -76,7 +76,7 @@ public class AdminServiceImpl implements AdminService {
 
         return CreateNewAdminResponseDTO.builder()
                 .isSuccess(true)
-                .message("A new admin has been successfully created")
+                .message("A new admin has been successfully created.")
                 .adminDTO(adminConverter.toDTO(newAdmin))
                 .build();
     }

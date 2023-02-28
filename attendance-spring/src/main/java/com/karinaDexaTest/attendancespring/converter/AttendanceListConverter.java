@@ -29,7 +29,7 @@ public class AttendanceListConverter {
 
     public List<AttendanceListDTO> convertToDtoList(Page<AttendanceList> attendanceListPage) {
         List<AttendanceList> entities = attendanceListPage.getContent();
-        return entities.stream().map(entity -> modelMapper.map(entity, AttendanceListDTO.class)).collect(Collectors.toList());
+        return entities.stream().map(entity -> toDTO(entity)).collect(Collectors.toList());
     }
 
     public AttendanceList toEntity(AttendanceListDTO attendanceListDTO) {

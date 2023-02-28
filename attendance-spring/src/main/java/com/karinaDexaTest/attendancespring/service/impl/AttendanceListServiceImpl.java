@@ -15,7 +15,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.List;
 
 @Service
 public class AttendanceListServiceImpl implements AttendanceListService {
@@ -58,6 +57,7 @@ public class AttendanceListServiceImpl implements AttendanceListService {
     @Override
     @Transactional
     public AddEmployeeAttendanceResponseDTO addEmployeeAttendance(AddEmployeeAttendanceRequestDTO dto) {
+        //call the employee service to validate whether the employee exists based on the employee_id
         Boolean validateEmployeeIdIsExist = webClient.get()
                 .uri("http://localhost:8084/employee/validate/" + dto.getEmployeeId())
                 .retrieve()
@@ -97,6 +97,7 @@ public class AttendanceListServiceImpl implements AttendanceListService {
 
     @Override
     public GetEmployeeAttendanceListResponseDTO getSpecificEmployeeAttendance(GetEmployeeAttendanceListRequestDTO dto) {
+        //call the employee service to validate whether the employee exists based on the employee_id
         Boolean validateEmployeeIdIsExist = webClient.get()
                 .uri("http://localhost:8084/employee/validate/" + dto.getEmployeeId())
                 .retrieve()
@@ -111,7 +112,6 @@ public class AttendanceListServiceImpl implements AttendanceListService {
         }
 
         ZoneId idZoneId = ZoneId.of("Asia/Bangkok");
-        ZoneId utcZoneId = ZoneId.of("UTC");
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         ZonedDateTime startDate;
@@ -119,8 +119,11 @@ public class AttendanceListServiceImpl implements AttendanceListService {
 
         LocalDateTime currentTime = LocalDateTime.now();
 
+        //Get startAt and endAt value based on input. If input == null use default setting.
+        //default startAt: first day of the month
+        //default endAt: current date time
         if(dto.getStartAt() == null || dto.getEndAt() == null) {
-            startDate = currentTime.with(TemporalAdjusters.firstDayOfMonth()).atZone(idZoneId);
+            startDate = currentTime.with(TemporalAdjusters.firstDayOfMonth()).with(LocalTime.MIDNIGHT).atZone(idZoneId);
             endDate = currentTime.atZone(idZoneId);
         } else {
             startDate = LocalDate.parse(dto.getStartAt(), dtf).atStartOfDay(idZoneId);

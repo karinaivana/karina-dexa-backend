@@ -7,6 +7,14 @@ create database dexaprojectdb with template=template0 owner=adminDatabase;
 alter default privileges grant all on tables to adminDatabase;
 alter default privileges grant all on sequence to adminDatabase;
 
+create table if not exists roles(
+    id varchar primary key NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp with time zone,
+    description varchar not null
+);
+
 CREATE TABLE if not exists employees(
     id bigserial primary key NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -15,7 +23,9 @@ CREATE TABLE if not exists employees(
     name varchar not null,
     email varchar not null,
     password varchar not null,
-    role varchar not null,
+    role_id varchar not null
+        constraint employees_role_id_fkey
+        references roles(id),
     phone_number varchar not null,
     photo_link varchar
 );
@@ -26,8 +36,8 @@ create table if not exists attendance_lists(
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     deleted_at timestamp with time zone,
     employee_id bigint not null
-                        constraint attendance_list_employee_id_fkey
-                        references employees(id),
+        constraint attendance_list_employee_id_fkey
+        references employees(id),
     start_work_at timestamp with time zone,
     end_work_at timestamp with time zone
 );
