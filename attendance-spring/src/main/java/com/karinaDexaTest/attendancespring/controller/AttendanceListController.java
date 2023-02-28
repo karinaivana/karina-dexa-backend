@@ -45,8 +45,8 @@ public class AttendanceListController {
     }
 
     @GetMapping("/all/list")
-    public ResponseEntity<List<AttendanceListDTO>> getAllEmployeeAttendance() {
-        List<AttendanceListDTO> attendanceListDTOS = attendanceListService.getAllEmployeeAttendance();
+    public ResponseEntity<GetAllEmployeeAttendanceResponseDTO> getAllEmployeeAttendance() {
+        GetAllEmployeeAttendanceResponseDTO attendanceListDTOS = attendanceListService.getAllEmployeeAttendance();
 
         return ResponseEntity.ok(attendanceListDTOS);
     }

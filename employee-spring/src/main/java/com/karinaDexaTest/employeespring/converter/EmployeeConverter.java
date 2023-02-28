@@ -3,7 +3,11 @@ package com.karinaDexaTest.employeespring.converter;
 import com.karinaDexaTest.employeespring.dto.EmployeeDTO;
 import com.karinaDexaTest.employeespring.model.Employee;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class EmployeeConverter {
@@ -21,6 +25,11 @@ public class EmployeeConverter {
         EmployeeDTO employeeDTO = modelMapper.map(employee, EmployeeDTO.class);
 
         return employeeDTO;
+    }
+
+    public List<EmployeeDTO> convertToDtoList(Page<Employee> employeePage) {
+        List<Employee> entities = employeePage.getContent();
+        return entities.stream().map(entity -> modelMapper.map(entity, EmployeeDTO.class)).collect(Collectors.toList());
     }
 
     public Employee toEntity(EmployeeDTO employeeDTO) {

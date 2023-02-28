@@ -8,5 +8,5 @@ public interface AttendanceListService {
     ValidateEmployeeAttendanceTodayResponseDTO validateEmployeeAttendanceToday(long employeeId);
     AddEmployeeAttendanceResponseDTO addEmployeeAttendance(AddEmployeeAttendanceRequestDTO dto);
     GetEmployeeAttendanceListResponseDTO getSpecificEmployeeAttendance(GetEmployeeAttendanceListRequestDTO dto);
-    List<AttendanceListDTO> getAllEmployeeAttendance();
+    GetAllEmployeeAttendanceResponseDTO getAllEmployeeAttendance();
 }

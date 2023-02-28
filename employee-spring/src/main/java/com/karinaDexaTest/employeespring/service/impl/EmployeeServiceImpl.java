@@ -8,6 +8,8 @@ import com.karinaDexaTest.employeespring.service.EmployeeService;
 import com.karinaDexaTest.employeespring.utils.EmailUtils;
 import com.karinaDexaTest.employeespring.utils.PhoneNumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeConverter employeeConverter;
     private final PhoneNumberUtils phoneNumberUtils;
     private final EmailUtils emailUtils;
+
+    private final int MAX_TOTAL_EMPLOYEE_LIST_SHOW = 1000;
 
     @Autowired
     public EmployeeServiceImpl(
@@ -100,47 +104,67 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public CreateNewEmployeeResponseDTO createNewEmployee(CreateNewEmployeeRequestDTO dto) {
+    public CreateOrUpdateEmployeeByAdminResponseDTO createOrUpdateEmployeeByAdmin(CreateOrUpdateEmployeeByAdminRequestDTO dto) {
         boolean isPhoneNumberValid = phoneNumberUtils.isValidPhoneNumber(dto.getPhoneNumber());
         String normalizePhoneNumber = phoneNumberUtils.normalizePhoneNumber(dto.getPhoneNumber());
         if(!isPhoneNumberValid || normalizePhoneNumber == null) {
-            return CreateNewEmployeeResponseDTO.builder()
-                    .message("Creating new employee data has failed because the phone number is not valid")
+            return CreateOrUpdateEmployeeByAdminResponseDTO.builder()
+                    .message("Creating/Updating new employee data has failed because the phone number is not valid")
                     .isSuccess(false)
                     .build();
         }
 
         boolean isEmailValid = emailUtils.isValidEmail(dto.getEmail());
         if(!isEmailValid) {
-            return CreateNewEmployeeResponseDTO.builder()
-                    .message("Creating new employee data has failed because the email is not valid")
+            return CreateOrUpdateEmployeeByAdminResponseDTO.builder()
+                    .message("Creating/Updating employee data has failed because the email is not valid")
                     .isSuccess(false)
                     .build();
         }
 
-        Employee existingEmployeeByEmail = employeeRepository.findExistingEmployeeByEmail(dto.getEmail());
+        Employee existingEmployeeByEmail = null;
+
+        if(dto.getId() == null) existingEmployeeByEmail = employeeRepository.findExistingEmployeeByEmail(dto.getEmail());
+        else if(dto.getId() != null) existingEmployeeByEmail = employeeRepository.findExistingEmployeeByEmailAndId(dto.getId(), dto.getEmail());
+
         if(existingEmployeeByEmail != null) {
-            return CreateNewEmployeeResponseDTO.builder()
-                    .message("Creating new employee has failed because username already exist")
+            return CreateOrUpdateEmployeeByAdminResponseDTO.builder()
+                    .message("Creating/Updating new employee has failed because email already exist")
                     .isSuccess(false)
                     .build();
         }
 
-        Employee newEmployee = new Employee();
+        Employee employeeSaved = null;
 
-        newEmployee.setName(dto.getName());
-        newEmployee.setEmail(dto.getEmail());
-        newEmployee.setPassword(dto.getPassword());
-        newEmployee.setRole(dto.getRole());
-        newEmployee.setPhoneNumber(normalizePhoneNumber);
-        newEmployee.setPhotoLink(dto.getPhotoLink());
+        if(dto.getId() != null) {
+            employeeSaved = employeeRepository.findExistingEmployee(dto.getId());
+        } else {
+            employeeSaved = new Employee();
+        }
 
-        employeeRepository.save(newEmployee);
+        employeeSaved.setName(dto.getName());
+        employeeSaved.setEmail(dto.getEmail());
+        employeeSaved.setPassword(dto.getPassword());
+        employeeSaved.setRole(dto.getRole());
+        employeeSaved.setPhoneNumber(normalizePhoneNumber);
+        employeeSaved.setPhotoLink(dto.getPhotoLink());
 
-        return CreateNewEmployeeResponseDTO.builder()
+        employeeRepository.save(employeeSaved);
+
+        return CreateOrUpdateEmployeeByAdminResponseDTO.builder()
                 .isSuccess(true)
-                .message("A new employee has been successfully created")
-                .employeeDTO(employeeConverter.toDTO(newEmployee))
+                .message("A employee has been successfully created or updated")
+                .employeeDTO(employeeConverter.toDTO(employeeSaved))
+                .build();
+    }
+
+    @Override
+    public GetAllEmployeeDataResponseDTO getAllEmployeeData() {
+        Page<Employee> employeeList = employeeRepository.getAllWithPageable(Pageable.ofSize(MAX_TOTAL_EMPLOYEE_LIST_SHOW));
+
+        return GetAllEmployeeDataResponseDTO.builder()
+                .isSuccess(true)
+                .employeeDTOList(employeeConverter.convertToDtoList(employeeList))
                 .build();
     }
 }

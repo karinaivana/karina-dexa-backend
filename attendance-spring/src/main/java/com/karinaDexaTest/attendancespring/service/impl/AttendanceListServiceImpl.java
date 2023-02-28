@@ -139,9 +139,12 @@ public class AttendanceListServiceImpl implements AttendanceListService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AttendanceListDTO> getAllEmployeeAttendance() {
+    public GetAllEmployeeAttendanceResponseDTO getAllEmployeeAttendance() {
         Page<AttendanceList> attendanceLists = attendanceListRepository.getAllWithPageable(Pageable.ofSize(MAX_TOTAL_ATTENDANCE_LIST_SHOW));
 
-        return attendanceListConverter.convertToDtoList(attendanceLists);
+        return GetAllEmployeeAttendanceResponseDTO.builder()
+                .isSuccess(true)
+                .attendanceListDTOS(attendanceListConverter.convertToDtoList(attendanceLists))
+                .build();
     }
 }
